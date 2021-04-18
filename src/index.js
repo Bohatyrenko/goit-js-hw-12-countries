@@ -1,29 +1,47 @@
 import '../src/styles.css';
-import countryTmp from '../src/country-card.hbs';
+import '@pnotify/core/dist/PNotify.css';
+import '@pnotify/core/dist/BrightTheme.css';
+import { error } from '@pnotify/core';
+import countryTmp from '../src/templates/country-card.hbs';
+import listCountryTmp from '../src/templates/list-country.hbs';
 import API from '../src/js/api-service';
 import getRefs from '../src/js/get-refs';
+import debounce from 'lodash.debounce';
 
 const refs = getRefs();
 
-refs.search.addEventListener('submit', onSearch);
+refs.input.addEventListener(
+  'input',
+  debounce(e => onSearch(e.target.value), 500),
+);
 
-function onSearch(e) {
-  e.preventDefault();
-
-  const formInput = e.currentTarget;
-  const searchValue = formInput.elements.query.value;
-
-  API.fetchCountry(searchValue)
+function onSearch(countryName) {
+  API.fetchCountry(countryName)
     .then(renderCountryCard)
-    .catch(onFetchError)
-    .finally(() => formInput.reset());
+    .catch(() =>
+      error({
+        title: 'Uh Oh!',
+        delay: 2000,
+        text: 'Nothing found!',
+      }),
+    );
 }
 
-function renderCountryCard(country) {
-  const markup = countryTmp(country);
-  refs.card.innerHTML = markup;
-}
-
-function onFetchError(error) {
-  alert('Такой страны не найдено!!!');
+function renderCountryCard(data) {
+  refs.cardContainer.innerHTML = '';
+  if (data.length === 1) {
+    const markup = countryTmp(data);
+    refs.cardContainer.innerHTML = markup;
+  }
+  if (data.length > 1 && data.length <= 10) {
+    const markup = listCountryTmp(data);
+    refs.cardContainer.innerHTML = markup;
+  }
+  if (data.length > 10) {
+    error({
+      title: 'Uh Oh!',
+      delay: 2000,
+      text: 'Too many matches found. Please enter a more specific query!',
+    });
+  }
 }

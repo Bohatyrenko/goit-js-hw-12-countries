@@ -46,3 +46,12 @@ img {
 .card {
   margin: 10px;
 }
+
+/* Стили для списка стран */
+.list-country {
+  font-size: 24px;
+  font-weight: bold;
+  max-width: 500px;
+  text-align: left;
+  margin: 0 auto;
+}
